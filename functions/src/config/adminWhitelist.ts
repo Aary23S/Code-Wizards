@@ -5,7 +5,7 @@ export const ADMIN_WHITELIST = [
     // Example: "dean@college.edu",
 
     // For development/testing - replace with your email
-    "your-email@gmail.com",
+    "satardekaraary@gmail.com",
 ];
 
 /**

@@ -51,4 +51,3 @@ export const resolveSafetyReport = (data: any) => callFunction("adminActions-res
 export const suspendUser = (uid: string, reason: string) => callFunction("adminActions-suspendUser", { uid, reason });
 export const promoteToAdmin = (uid: string, tenantId: string) => callFunction("adminActions-promoteToAdmin", { uid, tenantId });
 export const searchUsers = (query: string, tenantId: string = "default") => callFunction<{ query: string, tenantId: string }, { users: any[] }>("adminActions-searchUsers", { query, tenantId });
-export const bootstrapAdmin = () => callFunction("adminActions-bootstrapAdmin", {});

@@ -114,10 +114,22 @@ export const getAdminDashboardStats = functions.https.onCall(async (data: any, c
             ...doc.data()
         }));
 
+        // 4. Fetch Recent Announcements
+        const announcementsSnap = await db.collection("announcements")
+            .orderBy("createdAt", "desc")
+            .limit(20)
+            .get();
+
+        const announcements = announcementsSnap.docs.map(doc => ({
+            id: doc.id,
+            ...doc.data()
+        }));
+
         return {
             pendingAlumni,
             pendingReports,
-            recentLogs
+            recentLogs,
+            announcements
         };
     } catch (error: any) {
         console.error("getAdminDashboardStats error:", error);

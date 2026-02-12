@@ -116,9 +116,18 @@ export default function ProfilePage() {
             {/* Header */}
             <nav className="fixed top-0 z-50 w-full border-b border-white/10 bg-black/50 backdrop-blur-xl">
                 <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
-                    <div onClick={() => router.push("/")} className="flex items-center gap-2 cursor-pointer group">
-                        <div className="h-8 w-8 rounded bg-white" />
-                        <span className="text-xl font-black italic tracking-tighter uppercase">PROFILE CENTER</span>
+                    <div onClick={() => router.push("/")} className="flex items-center gap-4 cursor-pointer group">
+                        <div className="relative h-9 w-9 overflow-hidden rounded-xl border border-white/10 bg-zinc-900 transition-all duration-500 group-hover:border-white/20 group-hover:scale-105">
+                            <img
+                                src="/logo.jpeg"
+                                alt="Code Wizards Logo"
+                                className="h-full w-full object-cover"
+                            />
+                        </div>
+                        <div className="flex flex-col">
+                            <span className="text-lg font-black tracking-tighter leading-none text-white uppercase">CODE WIZARDS</span>
+                            <span className="text-[9px] font-bold tracking-[0.3em] text-zinc-500 uppercase">Profile Center</span>
+                        </div>
                     </div>
                     <button onClick={() => router.push("/")} className="text-[10px] font-black uppercase tracking-widest text-zinc-400 hover:text-white transition">BACK TO HOME</button>
                 </div>

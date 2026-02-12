@@ -52,7 +52,9 @@ export default function ActivityHistory({ activities }: { activities: ActivityIt
                         <div className="w-[calc(100%-4rem)] md:w-[calc(50%-2.5rem)] p-6 rounded-[2rem] bg-zinc-900/50 border border-white/5 hover:border-white/10 transition">
                             <div className="flex items-center justify-between mb-2">
                                 <time className="text-[10px] font-bold text-zinc-600 uppercase tracking-widest">
-                                    {item.createdAt ? format(new Date(item.createdAt.seconds * 1000), "MMM d, yyyy") : "Recent"}
+                                    {item.createdAt && typeof item.createdAt.seconds === 'number'
+                                        ? format(new Date(item.createdAt.seconds * 1000), "MMM d, yyyy")
+                                        : "Recent"}
                                 </time>
                                 <span className="px-2 py-0.5 rounded-full bg-white/5 text-[9px] font-black text-zinc-400 uppercase tracking-tighter">
                                     {item.type.replace("_", " ")}

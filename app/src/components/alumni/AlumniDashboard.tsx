@@ -161,9 +161,14 @@ export default function AlumniDashboard() {
                         </div>
 
                         <div className="space-y-12">
-                            <div>
-                                <h2 className="text-4xl font-black text-white mb-3 italic tracking-tighter uppercase leading-none">ALUMNI COMMAND</h2>
-                                <p className="text-zinc-500 text-sm font-medium">System Operator: <span className="text-zinc-300">{user?.displayName}</span> • Accessing encrypted impact data.</p>
+                            <div className="flex items-center gap-6">
+                                <div className="w-16 h-16 rounded-2xl bg-zinc-950 border border-white/10 p-2 overflow-hidden flex items-center justify-center">
+                                    <img src="/logo.jpeg" alt="Code Wizards Logo" className="w-full h-full object-contain" />
+                                </div>
+                                <div>
+                                    <h2 className="text-4xl font-black text-white mb-3 italic tracking-tighter uppercase leading-none">ALUMNI COMMAND</h2>
+                                    <p className="text-zinc-500 text-sm font-medium">System Operator: <span className="text-zinc-300">{user?.displayName}</span> • Accessing encrypted impact data.</p>
+                                </div>
                             </div>
 
                             <div className="flex flex-wrap gap-6">

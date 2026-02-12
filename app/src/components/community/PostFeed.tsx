@@ -29,9 +29,14 @@ export default function PostFeed() {
     return (
         <div className="w-full max-w-5xl mx-auto py-12 px-6">
             <div className="flex flex-col md:flex-row items-center justify-between mb-12 gap-6">
-                <div>
-                    <h2 className="text-4xl font-black text-white italic tracking-tighter uppercase leading-none mb-2">COMMUNITY FEED</h2>
-                    <p className="text-zinc-500 text-[10px] font-black uppercase tracking-[0.2em]">Insights, updates, and discussions from the Code Wizard club</p>
+                <div className="flex items-center gap-6">
+                    <div className="w-12 h-12 rounded-xl bg-zinc-950 border border-white/10 p-1.5 overflow-hidden flex items-center justify-center">
+                        <img src="/logo.jpeg" alt="Code Wizards Logo" className="w-full h-full object-contain" />
+                    </div>
+                    <div>
+                        <h2 className="text-4xl font-black text-white italic tracking-tighter uppercase leading-none mb-2">COMMUNITY FEED</h2>
+                        <p className="text-zinc-500 text-[10px] font-black uppercase tracking-[0.2em]">Insights, updates, and discussions from the Code Wizard club</p>
+                    </div>
                 </div>
                 <button
                     onClick={() => setShowCreate(true)}

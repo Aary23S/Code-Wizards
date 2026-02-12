@@ -254,9 +254,14 @@ export default function AdminPortal() {
             <UserProfileModal user={selectedUser} onClose={() => setSelectedUser(null)} />
 
             <header className="flex flex-col md:flex-row items-center justify-between gap-6 pb-8 border-b border-white/5">
-                <div>
-                    <h1 className="text-4xl font-black text-white mb-2 italic tracking-tighter uppercase leading-none">ADMIN CONTROL</h1>
-                    <p className="text-zinc-500 text-sm font-bold tracking-widest uppercase">Governance Terminal</p>
+                <div className="flex items-center gap-6">
+                    <div className="w-16 h-16 rounded-2xl bg-zinc-950 border border-white/10 p-2 overflow-hidden flex items-center justify-center">
+                        <img src="/logo.jpeg" alt="Code Wizards Logo" className="w-full h-full object-contain" />
+                    </div>
+                    <div>
+                        <h1 className="text-4xl font-black text-white mb-1 italic tracking-tighter uppercase leading-none">ADMIN CONTROL</h1>
+                        <p className="text-zinc-500 text-[10px] font-black tracking-[0.2em] uppercase">Governance Terminal | Code Wizards</p>
+                    </div>
                 </div>
 
                 <nav className="flex bg-zinc-950 p-1.5 rounded-2xl border border-white/10 overflow-x-auto max-w-full">
@@ -300,12 +305,12 @@ export default function AdminPortal() {
                                     Pending Alumni Transitions
                                 </h2>
                                 <span className="px-4 py-1.5 bg-zinc-900 border border-white/5 rounded-full text-[10px] font-black text-zinc-500 uppercase tracking-widest">
-                                    {stats.pendingAlumni.length} Applications
+                                    {stats.pendingAlumni?.length || 0} Applications
                                 </span>
                             </div>
 
                             <div className="grid grid-cols-1 gap-4">
-                                {stats.pendingAlumni.length === 0 ? (
+                                {!stats.pendingAlumni || stats.pendingAlumni.length === 0 ? (
                                     <div className="p-20 text-center border border-dashed border-white/5 rounded-[3rem]">
                                         <p className="text-zinc-600 font-bold uppercase tracking-widest text-xs">Clear of pending approvals</p>
                                     </div>
@@ -419,7 +424,7 @@ export default function AdminPortal() {
                             </h2>
 
                             <div className="grid grid-cols-1 gap-4">
-                                {stats.pendingReports.length === 0 ? (
+                                {!stats.pendingReports || stats.pendingReports.length === 0 ? (
                                     <div className="p-20 text-center border border-dashed border-white/5 rounded-[3rem]">
                                         <p className="text-zinc-600 font-bold uppercase tracking-widest text-xs">No active reports found</p>
                                     </div>
@@ -428,7 +433,7 @@ export default function AdminPortal() {
                                         <div className="flex-1 space-y-3">
                                             <div className="flex items-center gap-4">
                                                 <span className="px-3 py-1 bg-orange-500/10 text-orange-500 text-[10px] font-black rounded-full tracking-widest border border-orange-500/20">URGENT REPORT</span>
-                                                <span className="text-zinc-600 text-[10px] font-bold uppercase tracking-widest italic">{format(new Date(report.createdAt?.seconds * 1000), "MMM d, HH:mm")}</span>
+                                                <span className="text-zinc-600 text-[10px] font-bold uppercase tracking-widest italic">{report.createdAt?.seconds ? format(new Date(report.createdAt.seconds * 1000), "MMM d, HH:mm") : 'Unknown'}</span>
                                             </div>
                                             <h3 className="text-white font-bold text-lg">{report.reason}</h3>
                                             <div className="flex items-center gap-3">
@@ -478,9 +483,9 @@ export default function AdminPortal() {
                                         </tr>
                                     </thead>
                                     <tbody className="divide-y divide-white/5">
-                                        {stats.recentLogs.map((log: any) => (
+                                        {stats.recentLogs?.map((log: any) => (
                                             <tr key={log.id} className="hover:bg-white/5 transition text-zinc-500 group">
-                                                <td className="px-10 py-5 font-mono text-[10px]">{format(new Date(log.timestamp?.seconds * 1000), "HH:mm:ss dd/MM")}</td>
+                                                <td className="px-10 py-5 font-mono text-[10px]">{log.timestamp?.seconds ? format(new Date(log.timestamp.seconds * 1000), "HH:mm:ss dd/MM") : 'Unknown'}</td>
                                                 <td className="px-10 py-5">
                                                     <span className="text-zinc-300 font-bold group-hover:text-emerald-400 transition">{log.action || log.type}</span>
                                                 </td>
@@ -558,7 +563,7 @@ export default function AdminPortal() {
                                 </h3>
 
                                 <div className="space-y-4">
-                                    {stats.announcements.length === 0 ? (
+                                    {!stats.announcements || stats.announcements.length === 0 ? (
                                         <div className="p-12 text-center rounded-[2.5rem] border border-white/5 border-dashed">
                                             <p className="text-zinc-600 text-[10px] font-black uppercase tracking-widest">No previous broadcasts recorded</p>
                                         </div>
@@ -572,7 +577,7 @@ export default function AdminPortal() {
                                                 <p className="text-xs text-zinc-600 mb-4 line-clamp-2">{ann.content}</p>
                                                 <div className="flex items-center justify-between">
                                                     <span className="text-[8px] font-black text-zinc-700 uppercase tracking-widest">
-                                                        {new Date(ann.createdAt?._seconds * 1000).toLocaleDateString()}
+                                                        {ann.createdAt?._seconds ? new Date(ann.createdAt._seconds * 1000).toLocaleDateString() : 'Unknown'}
                                                     </span>
                                                     <button className="text-[8px] font-black text-red-900 hover:text-red-500 transition uppercase tracking-widest">REMOVE RECORD</button>
                                                 </div>

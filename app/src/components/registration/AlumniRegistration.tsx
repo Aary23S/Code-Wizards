@@ -71,7 +71,10 @@ export default function AlumniRegistration({ onSuccess, onCancel }: AlumniRegist
                 </div>
             )}
 
-            <div className="p-8 pb-0">
+            <div className="p-8 pb-0 flex flex-col items-center">
+                <div className="w-16 h-16 mb-4 rounded-2xl bg-zinc-900 border border-white/5 p-2 overflow-hidden shadow-2xl">
+                    <img src="/logo.jpeg" alt="Code Wizards Logo" className="w-full h-full object-cover" />
+                </div>
                 <h2 className="text-3xl font-bold mb-2 text-white tracking-tight text-center">Alumni Registration</h2>
                 <p className="text-zinc-500 mb-8 text-sm text-center">Join as a mentor and give back to the next generation of wizards.</p>
             </div>

@@ -1,7 +1,6 @@
 "use client";
 
 import { useAuth, signInWithGoogle, logout } from "@/services/auth";
-import { bootstrapAdmin } from "@/services/api";
 import { useRouter } from "next/navigation";
 import { useState } from "react";
 import StudentRegistration from "@/components/registration/StudentRegistration";
@@ -51,10 +50,19 @@ export default function Home() {
         <div className="mx-auto flex max-w-7xl items-center justify-between px-6 py-4">
           <div
             onClick={() => setView("landing")}
-            className="flex items-center gap-2 cursor-pointer group"
+            className="flex items-center gap-4 cursor-pointer group"
           >
-            <div className="h-8 w-8 rounded bg-white group-hover:bg-zinc-200 transition" />
-            <span className="text-xl font-bold tracking-tighter transition hover:text-zinc-400">CODE WIZARD</span>
+            <div className="relative h-10 w-10 overflow-hidden rounded-xl border border-white/10 bg-zinc-900 transition-all duration-500 group-hover:border-white/20 group-hover:scale-105">
+              <img
+                src="/logo.jpeg"
+                alt="Code Wizards Logo"
+                className="h-full w-full object-cover"
+              />
+            </div>
+            <div className="flex flex-col">
+              <span className="text-xl font-black tracking-tighter leading-none text-white uppercase">CODE WIZARDS</span>
+              <span className="text-[10px] font-bold tracking-[0.3em] text-zinc-500 uppercase">Innovation Hub</span>
+            </div>
           </div>
 
           <div className="flex items-center gap-6">
@@ -145,6 +153,17 @@ export default function Home() {
                   />
                 ) : (
                   <>
+                    <div className="mb-8 relative group">
+                      <div className="absolute inset-0 bg-white/20 blur-3xl rounded-full scale-50 group-hover:scale-110 transition-transform duration-1000" />
+                      <div className="relative w-32 h-32 md:w-40 md:h-40 p-4 bg-zinc-950 border border-white/10 rounded-[2.5rem] shadow-2xl transition-all duration-700 group-hover:border-white/20 group-hover:-translate-y-2">
+                        <img
+                          src="/logo.jpeg"
+                          alt="Code Wizards Emblem"
+                          className="w-full h-full object-contain filter drop-shadow-2xl"
+                        />
+                      </div>
+                    </div>
+
                     <h1 className="text-6xl md:text-8xl font-bold tracking-tight mb-8 bg-gradient-to-b from-white to-zinc-500 bg-clip-text text-transparent leading-none">
                       Empowering the<br />Next Gen of Coders.
                     </h1>
@@ -181,27 +200,6 @@ export default function Home() {
                       )}
                     </div>
 
-                    {/* Developer Bootstrap Tool (Local Only) */}
-                    {process.env.NODE_ENV === "development" && user && role !== "admin" && (
-                      <div className="mt-20 p-8 rounded-3xl border border-dashed border-emerald-500/20 bg-emerald-500/5 max-w-sm">
-                        <p className="text-[10px] font-black tracking-widest text-emerald-500 uppercase mb-4">FOR DEVELOPER ONLY</p>
-                        <p className="text-zinc-500 text-xs mb-6 font-medium">No admin exists on this account. Click below to grant yourself administrative rights for testing.</p>
-                        <button
-                          onClick={async () => {
-                            try {
-                              await bootstrapAdmin();
-                              alert("Success! You are now an Admin. Refreshing browser...");
-                              window.location.reload();
-                            } catch (e) {
-                              alert("Bootstrap failed. Ensure your account is signed in.");
-                            }
-                          }}
-                          className="w-full py-3 bg-emerald-600 text-white rounded-xl font-black text-[10px] tracking-widest hover:bg-emerald-500 transition"
-                        >
-                          BOOTSTRAP ADMIN ROLE 🛡️
-                        </button>
-                      </div>
-                    )}
                   </>
                 )}
               </div>
