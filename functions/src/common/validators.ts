@@ -4,18 +4,24 @@ import { z } from "zod";
 export const tenantIdSchema = z.string().min(1, "Tenant ID is required.");
 
 // Registration & Profile Schemas
+// Helper: Allow empty strings or valid URLs
+const urlOrEmpty = () => z.union([
+    z.string().url(),
+    z.literal("")
+]).optional();
+
 export const socialLinksSchema = z.object({
-    github: z.string().url().optional().or(z.literal("")),
-    linkedin: z.string().url().optional().or(z.literal("")),
-    twitter: z.string().url().optional().or(z.literal("")),
-    website: z.string().url().optional().or(z.literal("")),
+    github: urlOrEmpty(),
+    linkedin: urlOrEmpty(),
+    twitter: urlOrEmpty(),
+    website: urlOrEmpty(),
 }).optional();
 
 export const codingProfilesSchema = z.object({
-    leetcode: z.string().url().optional().or(z.literal("")),
-    codechef: z.string().url().optional().or(z.literal("")),
-    codeforces: z.string().url().optional().or(z.literal("")),
-    hackerrank: z.string().url().optional().or(z.literal("")),
+    leetcode: urlOrEmpty(),
+    codechef: urlOrEmpty(),
+    codeforces: urlOrEmpty(),
+    hackerrank: urlOrEmpty(),
 }).optional();
 
 export const registerStudentSchema = z.object({
@@ -31,8 +37,8 @@ export const registerStudentSchema = z.object({
     address: z.string().max(200).optional(),
     socialLinks: socialLinksSchema,
     codingProfiles: codingProfilesSchema,
-    resumeUrl: z.string().url().optional().or(z.literal("")),
-    profilePicUrl: z.string().url().optional().or(z.literal("")),
+    resumeUrl: urlOrEmpty(),
+    profilePicUrl: urlOrEmpty(),
     tenantId: tenantIdSchema,
 });
 
@@ -48,8 +54,8 @@ export const registerAlumniSchema = z.object({
     referralOptIn: z.boolean().default(false),
     socialLinks: socialLinksSchema,
     address: z.string().max(200).optional(),
-    resumeUrl: z.string().url().optional().or(z.literal("")),
-    profilePicUrl: z.string().url().optional().or(z.literal("")),
+    resumeUrl: urlOrEmpty(),
+    profilePicUrl: urlOrEmpty(),
     privacySettings: z.object({
         showEmail: z.boolean().default(false),
         showLinkedIn: z.boolean().default(true),
@@ -74,8 +80,8 @@ export const updateProfileSchema = z.object({
     address: z.string().max(200).optional(),
     socialLinks: socialLinksSchema,
     codingProfiles: codingProfilesSchema,
-    resumeUrl: z.string().url().optional().or(z.literal("")),
-    profilePicUrl: z.string().url().optional().or(z.literal("")),
+    resumeUrl: urlOrEmpty(),
+    profilePicUrl: urlOrEmpty(),
     mentorOptIn: z.boolean().optional(),
     referralOptIn: z.boolean().optional(),
     privacySettings: z.object({

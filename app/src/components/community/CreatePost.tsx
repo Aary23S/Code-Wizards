@@ -99,7 +99,7 @@ export default function CreatePost({ onSuccess, onCancel }: CreatePostProps) {
                         className="flex-1 px-6 py-3 bg-white text-black rounded-2xl text-[10px] font-black uppercase tracking-widest hover:bg-zinc-200 disabled:opacity-50 transition flex items-center justify-center gap-2"
                     >
                         {loading ? (
-                            <div className="h-4 w-4 animate-spin rounded-full border-2 border-zinc-400 border-t-black" />
+                            <div className="h-4 w-4 border-2 border-zinc-400 border-t-black rounded-full animate-spin" />
                         ) : "POST TO COMMUNITY"}
                     </button>
                 </div>

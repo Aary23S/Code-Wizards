@@ -8,6 +8,7 @@ import AlumniRegistration from "@/components/registration/AlumniRegistration";
 import PostFeed from "@/components/community/PostFeed";
 import ClubActivities from "@/components/community/ClubActivities";
 import AlumniDashboard from "@/components/alumni/AlumniDashboard";
+import Loader from "@/components/common/Loader";
 
 export default function Home() {
   const { user, loading, role } = useAuth();
@@ -23,11 +24,7 @@ export default function Home() {
   }
 
   if (loading) {
-    return (
-      <div className="flex min-h-screen items-center justify-center bg-black">
-        <div className="h-8 w-8 animate-spin rounded-full border-4 border-zinc-700 border-t-white" />
-      </div>
-    );
+    return <Loader variant="code" size="lg" fullScreen={true} text="Initializing wizardry..." />;
   }
 
   const handleJoin = async (type: "student" | "alumni") => {
@@ -148,7 +145,7 @@ export default function Home() {
                   />
                 ) : showReg === "alumni" ? (
                   <AlumniRegistration
-                    onSuccess={() => { setShowReg(null); window.location.reload(); }}
+                    onSuccess={() => { setShowReg(null); router.push("/alumni"); }}
                     onCancel={() => setShowReg(null)}
                   />
                 ) : (

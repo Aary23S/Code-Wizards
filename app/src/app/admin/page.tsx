@@ -4,6 +4,7 @@ import AdminPortal from "@/components/admin/AdminPortal";
 import { useAuth } from "@/services/auth";
 import { useRouter } from "next/navigation";
 import { useEffect } from "react";
+import Loader from "@/components/common/Loader";
 
 export default function AdminPage() {
     const { user, loading, role } = useAuth();
@@ -16,11 +17,7 @@ export default function AdminPage() {
     }, [user, loading, role, router]);
 
     if (loading || !user || role !== "admin") {
-        return (
-            <div className="flex min-h-screen items-center justify-center bg-black">
-                <div className="w-12 h-12 border-4 border-white/5 border-t-white rounded-full animate-spin" />
-            </div>
-        );
+        return <Loader variant="pulse" size="lg" fullScreen={true} text="Loading admin panel..." />;
     }
 
     return (

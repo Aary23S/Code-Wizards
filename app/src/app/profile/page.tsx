@@ -14,6 +14,7 @@ import {
     CameraIcon,
     BriefcaseIcon
 } from "@heroicons/react/24/outline";
+import Loader from "@/components/common/Loader";
 
 export default function ProfilePage() {
     const { user, loading: authLoading, role } = useAuth();
@@ -102,11 +103,7 @@ export default function ProfilePage() {
     };
 
     if (authLoading || loading) {
-        return (
-            <div className="flex min-h-screen items-center justify-center bg-black">
-                <div className="h-8 w-8 animate-spin rounded-full border-4 border-zinc-700 border-t-white" />
-            </div>
-        );
+        return <Loader variant="spinner" size="lg" fullScreen={true} text="Loading your profile..." />;
     }
 
     if (!profile) return null;
