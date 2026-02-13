@@ -56,14 +56,19 @@ export const getAlumniStats = functions.https.onCall(async (data: any, context: 
 
         // 4. Notification / Announcements
         const adminAnnouncementsSnap = await db.collection("announcements")
-            .orderBy("createdAt", "desc")
-            .limit(3)
+            .limit(5)
             .get();
 
-        const announcements = adminAnnouncementsSnap.docs.map(doc => ({
-            id: doc.id,
-            ...doc.data()
-        }));
+        const announcements = adminAnnouncementsSnap.docs
+            .sort((a, b) => {
+                const aTime = a.data().createdAt?._seconds || 0;
+                const bTime = b.data().createdAt?._seconds || 0;
+                return bTime - aTime;
+            })
+            .map(doc => ({
+                id: doc.id,
+                ...doc.data()
+            }));
 
         return {
             status: userData.status || "pending",
@@ -81,8 +86,11 @@ export const getAlumniStats = functions.https.onCall(async (data: any, context: 
 
     } catch (error: any) {
         if (error instanceof functions.https.HttpsError) throw error;
-        console.error("getAlumniStats error details:", error);
-        // Include error message in response for debugging (remove in production)
+        console.error("getAlumniStats error details:", {
+            message: error.message,
+            code: error.code,
+            stack: error.stack
+        });
         throw new functions.https.HttpsError("internal", `getAlumniStats failed: ${error.message}`);
     }
 });

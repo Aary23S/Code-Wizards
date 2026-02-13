@@ -4,6 +4,7 @@ import { useEffect, useState } from "react";
 import { getPosts } from "@/services/api";
 import PostCard from "./PostCard";
 import CreatePost from "./CreatePost";
+import { SkeletonLoader } from "@/components/common/Loader";
 
 export default function PostFeed() {
     const [posts, setPosts] = useState<any[]>([]);
@@ -56,11 +57,7 @@ export default function PostFeed() {
             )}
 
             {loading ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8 animate-pulse">
-                    {[1, 2, 3, 4].map(i => (
-                        <div key={i} className="h-64 rounded-2xl bg-zinc-900 border border-white/5" />
-                    ))}
-                </div>
+                <SkeletonLoader count={3} />
             ) : posts.length === 0 ? (
                 <div className="py-20 text-center rounded-3xl bg-zinc-950 border border-white/5 border-dashed">
                     <div className="text-4xl mb-4">📭</div>

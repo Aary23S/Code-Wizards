@@ -25,6 +25,7 @@ import {
     UserPlusIcon,
     MagnifyingGlassIcon
 } from "@heroicons/react/24/outline";
+import Loader from "@/components/common/Loader";
 
 const UserProfileModal = ({ user, onClose }: { user: any, onClose: () => void }) => {
     const [activities, setActivities] = useState<any[]>([]);
@@ -289,7 +290,7 @@ export default function AdminPortal() {
 
             {loading ? (
                 <div className="flex items-center justify-center min-h-[60vh]">
-                    <div className="h-12 w-12 animate-spin rounded-full border-4 border-zinc-700 border-t-white" />
+                    <Loader variant="code" size="lg" text="Loading admin dashboard..." />
                 </div>
             ) : !stats ? (
                 <div className="flex items-center justify-center min-h-[60vh]">

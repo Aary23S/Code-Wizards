@@ -3,6 +3,7 @@
 import { useEffect, useState } from "react";
 import { getFilteredRequests, acceptGuidanceRequest, replyToGuidance, reportStudent } from "@/services/api";
 import { ArrowPathIcon as RefreshIcon, ExclamationTriangleIcon as ReportIcon } from "@heroicons/react/24/outline";
+import { SkeletonLoader } from "@/components/common/Loader";
 
 interface GuidancePortalProps {
     alumniExpertise: string[];
@@ -224,9 +225,7 @@ export default function GuidancePortal({ alumniExpertise }: GuidancePortalProps)
             </div>
 
             {loading ? (
-                <div className="grid grid-cols-1 md:grid-cols-2 gap-8">
-                    {[1, 2, 3, 4].map(i => <div key={i} className="h-64 rounded-[3rem] bg-zinc-900 animate-pulse border border-white/5" />)}
-                </div>
+                <SkeletonLoader count={4} />
             ) : displayRequests.length === 0 ? (
                 <div className="p-32 text-center rounded-[4rem] border border-dashed border-white/5 bg-zinc-950/20">
                     <p className="text-zinc-600 font-bold uppercase tracking-[0.2em] text-xs">No active request vectors found</p>

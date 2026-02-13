@@ -13,11 +13,16 @@ export const registerStudent = functions.https.onCall(async (data: any, context:
         assertAuth(context);
         const uid = context.auth!.uid;
 
-        // 1. Validate Input
+        // 1. Validate Input with detailed errors
         const result = registerStudentSchema.safeParse(data);
         if (!result.success) {
-            console.error("Validation failed:", result.error.format());
-            throw new functions.https.HttpsError("invalid-argument", "Invalid input data.", result.error.format());
+            const errors = result.error.format();
+            console.error("Student registration validation failed:", errors);
+            throw new functions.https.HttpsError(
+                "invalid-argument", 
+                "Please check your form: " + JSON.stringify(errors).substring(0, 100),
+                errors
+            );
         }
         const parsed = result.data;
 
@@ -73,7 +78,10 @@ export const registerStudent = functions.https.onCall(async (data: any, context:
     } catch (error: any) {
         if (error instanceof functions.https.HttpsError) throw error;
         console.error("Registration internal error:", error);
-        throw new functions.https.HttpsError("internal", error.message || "An unexpected error occurred.");
+        throw new functions.https.HttpsError(
+            "internal", 
+            "Registration failed: " + (error.message || "Unknown error. Check console logs.")
+        );
     }
 });
 
@@ -82,9 +90,16 @@ export const registerAlumni = functions.https.onCall(async (data: any, context: 
         assertAuth(context);
         const uid = context.auth!.uid;
 
+        // Validate input with detailed error logging
         const result = registerAlumniSchema.safeParse(data);
         if (!result.success) {
-            throw new functions.https.HttpsError("invalid-argument", "Invalid data", result.error.format());
+            const errors = result.error.format();
+            console.error("Alumni registration validation failed:", errors);
+            throw new functions.https.HttpsError(
+                "invalid-argument", 
+                "Please check your form: " + JSON.stringify(errors).substring(0, 100),
+                errors
+            );
         }
         const parsed = result.data;
 
@@ -157,7 +172,10 @@ export const registerAlumni = functions.https.onCall(async (data: any, context: 
     } catch (error: any) {
         if (error instanceof functions.https.HttpsError) throw error;
         console.error("registerAlumni error:", error);
-        throw new functions.https.HttpsError("internal", error.message || "Failed to register alumni.");
+        throw new functions.https.HttpsError(
+            "internal", 
+            "Registration failed: " + (error.message || "Unknown error. Check console logs.")
+        );
     }
 });
 

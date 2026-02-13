@@ -52,7 +52,8 @@ const CreatePostModal = ({ onClose, onSuccess }: { onClose: () => void, onSucces
                             required
                             value={content}
                             onChange={(e) => setContent(e.target.value)}
-                            className="w-full h-48 bg-zinc-900 border border-white/5 rounded-2xl p-6 text-white text-sm focus:outline-none focus:ring-1 focus:ring-white/20 transition resize-none leading-relaxed"
+                            disabled={sending}
+                            className="w-full h-48 bg-zinc-900 border border-white/5 rounded-2xl p-6 text-white text-sm focus:outline-none focus:ring-1 focus:ring-white/20 transition resize-none leading-relaxed disabled:opacity-50"
                             placeholder="Share your experience, advice, or technical insights..."
                         />
                     </div>
@@ -76,17 +77,20 @@ export default function AlumniDashboard() {
     const { user } = useAuth();
     const [stats, setStats] = useState<any>(null);
     const [loading, setLoading] = useState(true);
+    const [error, setError] = useState<string | null>(null);
     const [updating, setUpdating] = useState<string | null>(null);
     const [view, setView] = useState<"overview" | "guidance">("overview");
     const [showPostModal, setShowPostModal] = useState(false);
 
     const fetchStats = async () => {
         setLoading(true);
+        setError(null);
         try {
             const data = await getAlumniStats();
             setStats(data);
-        } catch (error) {
+        } catch (error: any) {
             console.error("Error fetching alumni stats:", error);
+            setError(error.message || "Failed to load alumni statistics. Please try again.");
         } finally {
             setLoading(false);
         }
@@ -104,6 +108,21 @@ export default function AlumniDashboard() {
         }
     };
 
+    const getRelativeDate = (timestamp: any) => {
+        if (!timestamp) return "";
+        const date = new Date(timestamp._seconds * 1000);
+        const now = new Date();
+        const diffMs = now.getTime() - date.getTime();
+        const diffMins = Math.floor(diffMs / 60000);
+        const diffHours = Math.floor(diffMs / 3600000);
+        const diffDays = Math.floor(diffMs / 86400000);
+        
+        if (diffMins < 60) return `${diffMins}m ago`;
+        if (diffHours < 24) return `${diffHours}h ago`;
+        if (diffDays < 7) return `${diffDays}d ago`;
+        return date.toLocaleDateString();
+    };
+
     useEffect(() => {
         if (user) fetchStats();
     }, [user]);
@@ -114,6 +133,23 @@ export default function AlumniDashboard() {
                 <div className="h-40 rounded-[2.5rem] bg-zinc-900 border border-white/5" />
                 <div className="grid grid-cols-1 md:grid-cols-4 gap-8">
                     {[1, 2, 3, 4].map(i => <div key={i} className="h-32 rounded-3xl bg-zinc-900 border border-white/5" />)}
+                </div>
+            </div>
+        );
+    }
+
+    if (error) {
+        return (
+            <div className="w-full max-w-7xl mx-auto py-12 px-6">
+                <div className="p-8 bg-red-500/10 border border-red-500/20 rounded-[2.5rem] space-y-4">
+                    <h3 className="text-2xl font-black text-red-500 uppercase tracking-tighter">Error Loading Dashboard</h3>
+                    <p className="text-red-400">{error}</p>
+                    <button
+                        onClick={fetchStats}
+                        className="px-6 py-3 bg-red-500 hover:bg-red-600 text-white rounded-xl font-bold transition"
+                    >
+                        Try Again
+                    </button>
                 </div>
             </div>
         );
@@ -252,7 +288,7 @@ export default function AlumniDashboard() {
                                         <div key={ann.id} className="p-8 bg-zinc-950 border border-white/5 rounded-[2.5rem] hover:bg-zinc-900/40 transition-all duration-500 group">
                                             <div className="flex items-center justify-between mb-4">
                                                 <h4 className="text-xl font-black text-white italic tracking-tighter uppercase group-hover:text-blue-400 transition">{ann.title}</h4>
-                                                <span className="text-[8px] font-black text-zinc-700 uppercase tracking-widest">{new Date(ann.createdAt?._seconds * 1000).toLocaleDateString()}</span>
+                                                <span className="text-[8px] font-black text-zinc-700 uppercase tracking-widest">{getRelativeDate(ann.createdAt)}</span>
                                             </div>
                                             <p className="text-zinc-500 text-sm font-medium leading-relaxed mb-6">{ann.content}</p>
                                             <div className="flex items-center gap-2">

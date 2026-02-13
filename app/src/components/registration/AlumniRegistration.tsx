@@ -215,7 +215,9 @@ export default function AlumniRegistration({ onSuccess, onCancel }: AlumniRegist
                             className="flex-[2] px-4 py-3 bg-white text-black rounded-xl text-sm font-bold hover:bg-zinc-200 disabled:opacity-50 transition flex items-center justify-center gap-2"
                         >
                             {loading ? (
-                                <div className="h-4 w-4 animate-spin rounded-full border-2 border-zinc-400 border-t-black" />
+                                <>
+                                    <div className="h-4 w-4 border-2 border-zinc-400 border-t-black rounded-full animate-spin" />
+                                </>
                             ) : "Request Access"}
                         </button>
                     </div>
