@@ -1,12 +1,34 @@
-import { Router, Response, NextFunction } from 'express';
-import { verifyFirebaseToken, AuthRequest } from '../middleware/auth.js';
+import express, { Router, Response, NextFunction } from 'express';
+import { optionalAuth, AuthRequest } from '../middleware/auth.js';
+import { db } from '../config/firebase.js';
 
-const router: Router = Router();
+const router: Router = express.Router();
 
 // ✅ Get Alumni Stats (GET /api/alumni/stats)
-router.get('/stats', verifyFirebaseToken, async (req: AuthRequest, res: Response, next: NextFunction) => {
+router.get('/stats', optionalAuth, async (req: AuthRequest, res: Response, next: NextFunction) => {
     try {
-        res.json({ message: 'Alumni stats route created - logic coming soon' });
+        // Count alumni users
+        const alumniSnapshot = await db.collection('users')
+            .where('role', '==', 'alumni')
+            .get();
+
+        // Get recent announcements
+        const announcementSnapshot = await db.collection('announcements')
+            .orderBy('createdAt', 'desc')
+            .limit(5)
+            .get();
+
+        const announcements = announcementSnapshot.docs.map((doc: any) => ({
+            id: doc.id,
+            ...doc.data(),
+            createdAt: doc.data().createdAt?.toDate?.() || doc.data().createdAt
+        }));
+
+        res.json({
+            totalAlumni: alumniSnapshot.size,
+            recentAnnouncements: announcements,
+            statsUpdatedAt: new Date()
+        });
     } catch (error) {
         next(error);
     }

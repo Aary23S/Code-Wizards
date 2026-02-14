@@ -19,7 +19,8 @@ export const db = getFirestore(app);
 export const functions = getFunctions(app);
 
 // Connect to emulators in development (if available)
-if (process.env.NODE_ENV === "development") {
+// Emulators are disabled for now - using production Firebase instead
+if (process.env.NODE_ENV === "development" && false) {
     try {
         connectAuthEmulator(auth, "http://localhost:9099");
         connectFirestoreEmulator(db, "localhost", 8081);

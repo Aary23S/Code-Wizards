@@ -11,6 +11,11 @@ export const callApi = async <TRequest, TResponse>(
     try {
         const token = await auth.currentUser?.getIdToken();
         
+        console.log(`📡 API Request: ${method} ${API_URL}${endpoint}`, {
+            hasToken: !!token,
+            data: data ? "provided" : "none"
+        });
+
         const response = await fetch(`${API_URL}${endpoint}`, {
             method,
             headers: {
@@ -22,12 +27,15 @@ export const callApi = async <TRequest, TResponse>(
 
         if (!response.ok) {
             const error = await response.json();
-            throw new Error(error.error || "API request failed");
+            console.error(`❌ API Error [${response.status}]:`, error);
+            throw new Error(error.error || `API request failed with status ${response.status}`);
         }
 
-        return await response.json();
+        const result = await response.json();
+        console.log(`✅ API Response:`, result);
+        return result;
     } catch (error) {
-        console.error(`Error calling ${endpoint}:`, error);
+        console.error(`❌ Error calling ${endpoint}:`, error);
         throw error;
     }
 };
@@ -93,14 +101,32 @@ export const getActivityHistory = (userId?: string) =>
 export const getAdminDashboardStats = () => 
     callApi<any, any>("/admin/dashboard", "GET");
 
-export const approveAlumni = (uid: string, tenantId: string) => 
-    callApi<any, any>("/admin/approve-alumni", "POST", { uid, tenantId });
+export const getPendingAlumni = () => 
+    callApi<any, any[]>("/admin/pending-alumni", "GET");
+
+export const approveAlumni = (uid: string, tenantId?: string) => 
+    callApi<any, any>("/admin/approve-alumni", "POST", { uid });
+
+export const rejectAlumni = (uid: string, reason: string) => 
+    callApi<any, any>("/admin/reject-alumni", "POST", { uid, reason });
 
 export const createAnnouncement = (data: any) => 
-    callApi<any, any>("/admin/announcements", "POST", data);
+    callApi<any, any>("/admin/announcement", "POST", data);
 
-export const resolveSafetyReport = (data: any) => 
-    callApi<any, any>("/admin/safety-reports", "POST", data);
-export const suspendUser = (uid: string, reason: string) => callFunction("adminActions-suspendUser", { uid, reason });
-export const promoteToAdmin = (uid: string, tenantId: string) => callFunction("adminActions-promoteToAdmin", { uid, tenantId });
-export const searchUsers = (query: string, tenantId: string = "default") => callFunction<{ query: string, tenantId: string }, { users: any[] }>("adminActions-searchUsers", { query, tenantId });
+export const suspendUser = (uid: string, reason: string) => 
+    callApi<any, any>("/admin/suspend-user", "POST", { uid, reason });
+
+export const blockUser = (uid: string, reason: string) => 
+    callApi<any, any>("/admin/block-user", "POST", { uid, reason });
+
+export const searchUsers = (query: string) => 
+    callApi<any, any[]>(`/admin/search-users?q=${encodeURIComponent(query)}`, "GET");
+
+export const getAuditLogs = () => 
+    callApi<any, any[]>("/admin/audit-logs", "GET");
+
+export const getSafetyReports = () => 
+    callApi<any, any[]>("/safety/reports", "GET");
+
+export const resolveSafetyReport = (data: { reportId: string; resolution: string; action: string }) => 
+    callApi<any, any>(`/safety/${data.reportId}/resolve`, "POST", data);
