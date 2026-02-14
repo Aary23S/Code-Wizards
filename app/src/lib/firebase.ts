@@ -4,12 +4,12 @@ import { getFirestore, connectFirestoreEmulator } from "firebase/firestore";
 import { getFunctions, connectFunctionsEmulator } from "firebase/functions";
 
 const firebaseConfig = {
-    apiKey: "YOUR_API_KEY", // Replace with real key from console later
-    authDomain: "code-wizards-9e993.firebaseapp.com",
-    projectId: "code-wizards-9e993",
-    storageBucket: "code-wizards-9e993.appspot.com",
-    messagingSenderId: "301868541330",
-    appId: "APP_ID" // Replace with real ID from console later
+    apiKey: process.env.NEXT_PUBLIC_FIREBASE_API_KEY,
+    authDomain: process.env.NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN,
+    projectId: process.env.NEXT_PUBLIC_FIREBASE_PROJECT_ID,
+    storageBucket: process.env.NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET,
+    messagingSenderId: process.env.NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID,
+    appId: process.env.NEXT_PUBLIC_FIREBASE_APP_ID
 };
 
 const app = getApps().length === 0 ? initializeApp(firebaseConfig) : getApps()[0];
@@ -18,9 +18,14 @@ export const auth = getAuth(app);
 export const db = getFirestore(app);
 export const functions = getFunctions(app);
 
-// Connect to emulators in development
+// Connect to emulators in development (if available)
 if (process.env.NODE_ENV === "development") {
-    connectAuthEmulator(auth, "http://localhost:9099");
-    connectFirestoreEmulator(db, "localhost", 8081);
-    connectFunctionsEmulator(functions, "localhost", 5001);
+    try {
+        connectAuthEmulator(auth, "http://localhost:9099");
+        connectFirestoreEmulator(db, "localhost", 8081);
+        connectFunctionsEmulator(functions, "localhost", 5001);
+        console.log("✅ Connected to Firebase emulators");
+    } catch (error) {
+        console.warn("⚠️ Firebase emulators not available. Using production Firebase.", error);
+    }
 }

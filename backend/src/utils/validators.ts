@@ -1,28 +1,32 @@
-import { z } from "zod";
+import { z } from 'zod';
 
 // Common Schemas
-export const tenantIdSchema = z.string().min(1, "Tenant ID is required.");
+export const tenantIdSchema = z.string().min(1, 'Tenant ID is required.');
 
 // Registration & Profile Schemas
 // Helper: Allow empty strings or valid URLs
-const urlOrEmpty = () => z.union([
-    z.string().url(),
-    z.literal("")
-]).optional();
+const urlOrEmpty = () =>
+    z
+        .union([z.string().url(), z.literal('')])
+        .optional();
 
-export const socialLinksSchema = z.object({
-    github: urlOrEmpty(),
-    linkedin: urlOrEmpty(),
-    twitter: urlOrEmpty(),
-    website: urlOrEmpty(),
-}).optional();
+export const socialLinksSchema = z
+    .object({
+        github: urlOrEmpty(),
+        linkedin: urlOrEmpty(),
+        twitter: urlOrEmpty(),
+        website: urlOrEmpty(),
+    })
+    .optional();
 
-export const codingProfilesSchema = z.object({
-    leetcode: urlOrEmpty(),
-    codechef: urlOrEmpty(),
-    codeforces: urlOrEmpty(),
-    hackerrank: urlOrEmpty(),
-}).optional();
+export const codingProfilesSchema = z
+    .object({
+        leetcode: urlOrEmpty(),
+        codechef: urlOrEmpty(),
+        codeforces: urlOrEmpty(),
+        hackerrank: urlOrEmpty(),
+    })
+    .optional();
 
 export const registerStudentSchema = z.object({
     displayName: z.string().min(2).max(50),
@@ -56,11 +60,13 @@ export const registerAlumniSchema = z.object({
     address: z.string().max(200).optional(),
     resumeUrl: urlOrEmpty(),
     profilePicUrl: urlOrEmpty(),
-    privacySettings: z.object({
-        showEmail: z.boolean().default(false),
-        showLinkedIn: z.boolean().default(true),
-        showCompany: z.boolean().default(true),
-    }).optional(),
+    privacySettings: z
+        .object({
+            showEmail: z.boolean().default(false),
+            showLinkedIn: z.boolean().default(true),
+            showCompany: z.boolean().default(true),
+        })
+        .optional(),
     tenantId: tenantIdSchema,
 });
 
@@ -84,11 +90,13 @@ export const updateProfileSchema = z.object({
     profilePicUrl: urlOrEmpty(),
     mentorOptIn: z.boolean().optional(),
     referralOptIn: z.boolean().optional(),
-    privacySettings: z.object({
-        showEmail: z.boolean().optional(),
-        showLinkedIn: z.boolean().optional(),
-        showCompany: z.boolean().optional(),
-    }).optional(),
+    privacySettings: z
+        .object({
+            showEmail: z.boolean().optional(),
+            showLinkedIn: z.boolean().optional(),
+            showCompany: z.boolean().optional(),
+        })
+        .optional(),
 });
 
 // Admin Action Schemas
@@ -96,7 +104,6 @@ export const approveAlumniSchema = z.object({
     uid: z.string().min(1),
     tenantId: tenantIdSchema,
 });
-
 
 export const suspendUserSchema = z.object({
     uid: z.string().min(1),
@@ -132,14 +139,14 @@ export const requestGuidanceSchema = z.object({
     mentorId: z.string().min(1).optional(),
     topic: z.string().min(5).max(100),
     message: z.string().min(10).max(1000),
-    type: z.enum(["mentorship", "referral"]).default("mentorship"),
+    type: z.enum(['mentorship', 'referral']).default('mentorship'),
     tenantId: tenantIdSchema,
 });
 
 export const replyGuidanceSchema = z.object({
     requestId: z.string().min(1),
     response: z.string().min(10).max(1000),
-    status: z.enum(["accepted", "declined", "completed"]).optional(),
+    status: z.enum(['accepted', 'declined', 'completed']).optional(),
 });
 
 export const reportStudentSchema = z.object({
@@ -162,14 +169,14 @@ export const transitionToAlumniSchema = z.object({
 export const createAnnouncementSchema = z.object({
     title: z.string().min(5).max(100),
     content: z.string().min(10).max(1000),
-    type: z.enum(["info", "warning", "success", "event"]).default("info"),
+    type: z.enum(['info', 'warning', 'success', 'event']).default('info'),
     tenantId: tenantIdSchema,
 });
 
 export const resolveSafetyReportSchema = z.object({
     reportId: z.string().min(1),
     resolution: z.string().min(5).max(500),
-    action: z.enum(["none", "warning", "suspend"]).default("none"),
+    action: z.enum(['none', 'warning', 'suspend']).default('none'),
     tenantId: tenantIdSchema,
 });
 

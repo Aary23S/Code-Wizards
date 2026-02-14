@@ -1,5 +1,43 @@
-functions/lib/index.js
-ALUMNI_FEATURES_ROADMAP.md
-STUDENT_FEATURES_ANALYSIS.md
-ALUMNI_DASHBOARD_NAVIGATION_SETUP.md
-ALUMNI_DASHBOARD_STATUS.md
+# Dependencies
+node_modules/
+package-lock.json
+pnpm-lock.yaml
+
+# Build artifacts
+.next/
+dist/
+build/
+out/
+
+# Environment variables
+.env
+.env.local
+.env.*.local
+
+# IDE
+.vscode/
+.idea/
+*.swp
+*.swo
+*~
+
+# OS
+.DS_Store
+Thumbs.db
+
+# Logs
+*.log
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Firebase
+firebase.json
+.firebaserc
+firestore-debug.log
+code-wizards-key.json
+
+# Temporary
+*.bak
+*.tmp
+cleanup.bat
