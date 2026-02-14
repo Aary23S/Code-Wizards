@@ -162,6 +162,7 @@ router.post('/register-alumni', verifyFirebaseToken, async (req: AuthRequest, re
             { merge: true }
         );
 
+        // Create alumniMeta with opt-in preferences (SINGLE SOURCE OF TRUTH)
         const alumniMetaRef = db.collection('alumniMeta').doc(uid);
         batch.set(alumniMetaRef, {
             userId: uid,
@@ -196,6 +197,8 @@ router.get('/profile', verifyFirebaseToken, async (req: AuthRequest, res: Respon
 });
 
 // ✅ Update Profile (PATCH /api/users/profile)
+// Status enforcement: Can only update toggles if status == 'active'
+// Single source of truth: mentorOptIn/referralOptIn stored ONLY in alumniMeta
 router.patch('/profile', verifyFirebaseToken, async (req: AuthRequest, res: Response, next: NextFunction) => {
     try {
         const uid = req.user?.uid;
@@ -210,23 +213,64 @@ router.patch('/profile', verifyFirebaseToken, async (req: AuthRequest, res: Resp
             );
         }
 
-        const batch = db.batch();
-        const profileRef = db.collection('profiles').doc(uid);
-        batch.update(profileRef, {
-            ...result.data,
-            updatedAt: FieldValue.serverTimestamp(),
-        });
+        const { mentorOptIn, referralOptIn, ...profileData } = result.data;
 
-        // If updating mentor/referral opt-in, also update alumniMeta
-        if ('mentorOptIn' in result.data || 'referralOptIn' in result.data) {
-            const alumniMetaRef = db.collection('alumniMeta').doc(uid);
-            batch.update(alumniMetaRef, {
-                ...(result.data.mentorOptIn !== undefined && { mentorOptIn: result.data.mentorOptIn }),
-                ...(result.data.referralOptIn !== undefined && { referralOptIn: result.data.referralOptIn }),
+        // Use transaction for atomicity
+        await db.runTransaction(async (transaction) => {
+            // Get user to check status
+            const userRef = db.collection('users').doc(uid);
+            const userDoc = await transaction.get(userRef);
+
+            if (!userDoc.exists) {
+                throw new ApiError('User not found', 404);
+            }
+
+            const userData = userDoc.data();
+
+            // Check if updating toggles and enforce status == 'active'
+            if ((mentorOptIn !== undefined || referralOptIn !== undefined) && userData?.status !== 'active') {
+                throw new ApiError(
+                    'Can only modify mentorship settings when account is active',
+                    403,
+                    'status-not-active'
+                );
+            }
+
+            // Update profile with non-toggle fields only
+            const profileRef = db.collection('profiles').doc(uid);
+            transaction.update(profileRef, {
+                ...profileData,
+                updatedAt: FieldValue.serverTimestamp(),
             });
-        }
 
-        await batch.commit();
+            // Update alumniMeta with toggles ONLY (single source of truth)
+            if (mentorOptIn !== undefined || referralOptIn !== undefined) {
+                const alumniMetaRef = db.collection('alumniMeta').doc(uid);
+                const updateData: any = {};
+                
+                if (mentorOptIn !== undefined) {
+                    updateData.mentorOptIn = mentorOptIn;
+                }
+                if (referralOptIn !== undefined) {
+                    updateData.referralOptIn = referralOptIn;
+                }
+
+                transaction.update(alumniMetaRef, updateData);
+
+                // Log toggle changes
+                const activityRef = userRef.collection('activity').doc();
+                transaction.set(activityRef, {
+                    type: 'settings_changed',
+                    timestamp: new Date(),
+                    changes: updateData,
+                    details: {
+                        fieldChanged: Object.keys(updateData),
+                        mentorOptIn: mentorOptIn !== undefined ? mentorOptIn : null,
+                        referralOptIn: referralOptIn !== undefined ? referralOptIn : null,
+                    }
+                });
+            }
+        });
 
         res.json({ success: true, message: 'Profile updated successfully' });
     } catch (error) {

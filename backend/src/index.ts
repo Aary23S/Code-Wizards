@@ -1,6 +1,21 @@
 import express, { Express, Request, Response, NextFunction } from 'express';
 import cors from 'cors';
 import dotenv from 'dotenv';
+
+// Load environment variables first
+dotenv.config();
+
+// Add global error handler
+process.on('uncaughtException', (err) => {
+    console.error('UNCAUGHT EXCEPTION:', err);
+    process.exit(1);
+});
+
+process.on('unhandledRejection', (reason, promise) => {
+    console.error('UNHANDLED REJECTION:', reason);
+    process.exit(1);
+});
+
 import './config/firebase.js';
 
 // Middleware
@@ -13,8 +28,8 @@ import guidanceRouter from './routes/guidance.js';
 import alumniRouter from './routes/alumni.js';
 import adminRouter from './routes/admin.js';
 import safetyRouter from './routes/safety.js';
-
-dotenv.config();
+import matchingRouter from './routes/matching.js';
+import referralsRouter from './routes/referrals.js';
 
 const app: Express = express();
 const PORT = process.env.PORT || 3001;
@@ -41,6 +56,8 @@ app.use('/api/guidance', guidanceRouter);
 app.use('/api/alumni', alumniRouter);
 app.use('/api/admin', adminRouter);
 app.use('/api/safety', safetyRouter);
+app.use('/api/matching', matchingRouter);
+app.use('/api/referrals', referralsRouter);
 
 // 404 handler
 app.use((req: Request, res: Response) => {

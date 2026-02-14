@@ -17,16 +17,27 @@ router.get('/dashboard', verifyFirebaseToken, async (req: AuthRequest, res: Resp
 
         // Get stats
         const studentsSnapshot = await db.collection('users').where('role', '==', 'student').get();
-        const alumniSnapshot = await db.collection('users').where('role', '==', 'alumni').get();
+        const activeAlumniSnapshot = await db.collection('users')
+            .where('role', '==', 'alumni')
+            .where('status', '==', 'active')
+            .get();
         const pendingAlumniSnapshot = await db.collection('users')
             .where('role', '==', 'alumni')
-            .where('approved', '==', false)
+            .where('status', '==', 'pending')
+            .get();
+        const suspendedSnapshot = await db.collection('users')
+            .where('status', '==', 'suspended')
+            .get();
+        const blockedSnapshot = await db.collection('users')
+            .where('status', '==', 'blocked')
             .get();
 
         res.json({
             totalStudents: studentsSnapshot.size,
-            totalAlumni: alumniSnapshot.size,
+            totalActiveAlumni: activeAlumniSnapshot.size,
             pendingAlumniApprovals: pendingAlumniSnapshot.size,
+            suspendedUsers: suspendedSnapshot.size,
+            blockedUsers: blockedSnapshot.size,
             lastUpdated: new Date()
         });
     } catch (error) {
@@ -35,6 +46,7 @@ router.get('/dashboard', verifyFirebaseToken, async (req: AuthRequest, res: Resp
 });
 
 // ✅ Approve Alumni (POST /api/admin/approve-alumni)
+// Sets status to 'active' and grants custom claims
 router.post('/approve-alumni', verifyFirebaseToken, async (req: AuthRequest, res: Response, next: NextFunction) => {
     try {
         const { uid } = req.body;
@@ -45,17 +57,75 @@ router.post('/approve-alumni', verifyFirebaseToken, async (req: AuthRequest, res
             return res.status(403).json({ error: 'Access denied. Admin role required.' });
         }
 
-        // Update user approval status
-        await db.collection('users').doc(uid).update({
-            approved: true,
-            approvedAt: new Date(),
-            approvedBy: adminEmail
+        // Validate UID provided
+        if (!uid) {
+            return res.status(400).json({ error: 'uid is required' });
+        }
+
+        // Verify user exists and is alumni
+        const userDoc = await db.collection('users').doc(uid).get();
+        if (!userDoc.exists) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+
+        const userData = userDoc.data();
+        if (userData?.role !== 'alumni') {
+            return res.status(400).json({ error: 'User is not an alumni' });
+        }
+
+        if (userData?.status === 'active') {
+            return res.status(400).json({ error: 'Alumni is already active' });
+        }
+
+        // Use transaction for atomicity
+        await db.runTransaction(async (transaction) => {
+            // Update user document
+            const userRef = db.collection('users').doc(uid);
+            transaction.update(userRef, {
+                status: 'active',
+                approvedAt: new Date(),
+                approvedBy: adminEmail,
+            });
+
+            // Log admin action
+            const auditRef = db.collection('admin_audit_logs').doc();
+            transaction.set(auditRef, {
+                timestamp: new Date(),
+                adminEmail,
+                action: 'approve_alumni',
+                targetUserId: uid,
+                targetEmail: userData.email,
+                details: {
+                    previousStatus: userData.status,
+                    newStatus: 'active'
+                }
+            });
+
+            // Log activity for the approved alumni
+            const activityRef = userRef.collection('activity').doc();
+            transaction.set(activityRef, {
+                type: 'alumni_approved',
+                approvedBy: adminEmail,
+                timestamp: new Date(),
+                details: {
+                    previousStatus: userData.status,
+                    newStatus: 'active'
+                }
+            });
         });
 
-        // Set custom claim
-        await auth.setCustomUserClaims(uid, { role: 'alumni', approved: true });
+        // Set Firebase custom claims (happens after transaction)
+        try {
+            await auth.setCustomUserClaims(uid, { role: 'alumni', status: 'active' });
+        } catch (claimError) {
+            console.warn('Warning: Failed to set custom claims, but user was updated:', claimError);
+        }
 
-        res.json({ message: 'Alumni approved successfully' });
+        res.json({ 
+            success: true,
+            message: 'Alumni approved successfully and account activated',
+            uid 
+        });
     } catch (error) {
         next(error);
     }
@@ -95,10 +165,10 @@ router.get('/pending-alumni', verifyFirebaseToken, async (req: AuthRequest, res:
             return res.status(403).json({ error: 'Access denied. Admin role required.' });
         }
 
-        // Get pending alumni
+        // Get pending alumni (status = 'pending')
         const snapshot = await db.collection('users')
             .where('role', '==', 'alumni')
-            .where('approved', '==', false)
+            .where('status', '==', 'pending')
             .orderBy('createdAt', 'desc')
             .get();
 
@@ -125,16 +195,65 @@ router.post('/reject-alumni', verifyFirebaseToken, async (req: AuthRequest, res:
             return res.status(403).json({ error: 'Access denied. Admin role required.' });
         }
 
-        // Update rejection status
-        await db.collection('users').doc(uid).update({
-            approved: false,
-            rejected: true,
-            rejectionReason: reason || 'No reason provided',
-            rejectedAt: new Date(),
-            rejectedBy: adminEmail
+        if (!uid) {
+            return res.status(400).json({ error: 'uid is required' });
+        }
+
+        // Verify user exists and is alumni
+        const userDoc = await db.collection('users').doc(uid).get();
+        if (!userDoc.exists) {
+            return res.status(404).json({ error: 'User not found' });
+        }
+
+        const userData = userDoc.data();
+        if (userData?.role !== 'alumni') {
+            return res.status(400).json({ error: 'User is not an alumni' });
+        }
+
+        // Use transaction for atomicity
+        await db.runTransaction(async (transaction) => {
+            const userRef = db.collection('users').doc(uid);
+            
+            // Update status to rejected (or inactive)
+            transaction.update(userRef, {
+                status: 'rejected',
+                rejectionReason: reason || 'No reason provided',
+                rejectedAt: new Date(),
+                rejectedBy: adminEmail
+            });
+
+            // Log admin action
+            const auditRef = db.collection('admin_audit_logs').doc();
+            transaction.set(auditRef, {
+                timestamp: new Date(),
+                adminEmail,
+                action: 'reject_alumni',
+                targetUserId: uid,
+                targetEmail: userData.email,
+                reason: reason || 'No reason provided',
+                details: {
+                    previousStatus: userData.status
+                }
+            });
+
+            // Log activity for the rejected alumni
+            const activityRef = userRef.collection('activity').doc();
+            transaction.set(activityRef, {
+                type: 'alumni_rejected',
+                rejectedBy: adminEmail,
+                reason: reason,
+                timestamp: new Date(),
+                details: {
+                    reason: reason
+                }
+            });
         });
 
-        res.json({ message: 'Alumni rejected successfully' });
+        res.json({ 
+            success: true,
+            message: 'Alumni registration rejected',
+            uid 
+        });
     } catch (error) {
         next(error);
     }

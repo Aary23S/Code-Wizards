@@ -80,6 +80,35 @@ export const replyToGuidance = (data: { requestId: string; reply: string }) =>
 export const getAlumniStats = () => 
     callApi<any, any>("/alumni/stats", "GET");
 
+export const getAlumniAnalytics = (uid: string) => 
+    callApi<any, any>(`/alumni/${uid}/analytics`, "GET");
+
+export const getAlumniLeaderboard = () => 
+    callApi<any, any>("/alumni/leaderboard", "GET");
+
+// Matching
+export const getRecommendedMentors = (skills?: string) => 
+    callApi<any, any>(`/matching/recommended-mentors${skills ? `?skills=${encodeURIComponent(skills)}` : ''}`, "GET");
+
+export const getAvailableMentors = () => 
+    callApi<any, any>("/matching/available-mentors", "GET");
+
+// Referrals
+export const createReferral = (data: any) => 
+    callApi<any, any>("/referrals", "POST", data);
+
+export const getReferrals = (type: 'open' | 'created' | 'applied' = 'open') => 
+    callApi<any, any[]>(`/referrals?type=${type}`, "GET");
+
+export const applyToReferral = (referralId: string) => 
+    callApi<any, any>(`/referrals/${referralId}/apply`, "POST", {});
+
+export const updateReferralApplicationStatus = (referralId: string, studentId: string, status: string) => 
+    callApi<any, any>(`/referrals/${referralId}/applicant/${studentId}`, "PATCH", { status });
+
+export const closeReferral = (referralId: string) => 
+    callApi<any, any>(`/referrals/${referralId}/close`, "PATCH", {});
+
 export const getFilteredRequests = () => 
     callApi<any, any[]>("/guidance/filtered", "GET");
 
