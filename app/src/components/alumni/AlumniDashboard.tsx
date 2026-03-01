@@ -1,7 +1,7 @@
 "use client";
 
 import { useEffect, useState } from "react";
-import { getAlumniStats, updateProfile, createPost } from "@/services/api";
+import { getProfile, updateProfile, createPost } from "@/services/api";
 import { useAuth } from "@/services/auth";
 import GuidancePortal from "./GuidancePortal";
 
@@ -86,11 +86,11 @@ export default function AlumniDashboard() {
         setLoading(true);
         setError(null);
         try {
-            const data = await getAlumniStats();
+            const data = await getProfile();
             setStats(data);
         } catch (error: any) {
-            console.error("Error fetching alumni stats:", error);
-            setError(error.message || "Failed to load alumni statistics. Please try again.");
+            console.error("Error fetching profile:", error);
+            setError(error.message || "Failed to load profile. Please try again.");
         } finally {
             setLoading(false);
         }
@@ -212,15 +212,15 @@ export default function AlumniDashboard() {
                                     <div className="space-y-2">
                                         <p className="text-[10px] font-black text-zinc-600 uppercase tracking-widest">MENTORSHIP NODE</p>
                                         <div className="flex items-center gap-4">
-                                            <span className={`text-sm font-black tracking-widest uppercase ${stats.mentorOptIn ? "text-emerald-400" : "text-zinc-600"}`}>
-                                                {stats.mentorOptIn ? "ACTIVE" : "STANDBY"}
+                                            <span className={`text-sm font-black tracking-widest uppercase ${stats?.mentorOptIn ? "text-emerald-400" : "text-zinc-600"}`}>
+                                                {stats?.mentorOptIn ? "ACTIVE" : "STANDBY"}
                                             </span>
                                             <button
                                                 disabled={!!updating}
                                                 onClick={() => toggleOptIn("mentorOptIn")}
-                                                className={`w-12 h-6 rounded-full relative transition-all duration-500 ${stats.mentorOptIn ? "bg-emerald-500" : "bg-zinc-800"} ${updating === "mentorOptIn" ? "opacity-50" : ""}`}
+                                                className={`w-12 h-6 rounded-full relative transition-all duration-500 ${stats?.mentorOptIn ? "bg-emerald-500" : "bg-zinc-800"} ${updating === "mentorOptIn" ? "opacity-50" : ""}`}
                                             >
-                                                <div className={`absolute top-1.5 w-3 h-3 rounded-full bg-white transition-all duration-500 ${stats.mentorOptIn ? "right-1.5" : "left-1.5"}`} />
+                                                <div className={`absolute top-1.5 w-3 h-3 rounded-full bg-white transition-all duration-500 ${stats?.mentorOptIn ? "right-1.5" : "left-1.5"}`} />
                                             </button>
                                         </div>
                                     </div>
@@ -230,13 +230,13 @@ export default function AlumniDashboard() {
                                     <div className="space-y-2">
                                         <p className="text-[10px] font-black text-zinc-600 uppercase tracking-widest">REFERRAL VECTOR</p>
                                         <div className="flex items-center gap-4">
-                                            <span className={`text-sm font-black tracking-widest uppercase ${stats.referralOptIn ? "text-emerald-400" : "text-zinc-600"}`}>
-                                                {stats.referralOptIn ? "ACTIVE" : "STANDBY"}
+                                            <span className={`text-sm font-black tracking-widest uppercase ${stats?.referralOptIn ? "text-emerald-400" : "text-zinc-600"}`}>
+                                                {stats?.referralOptIn ? "ACTIVE" : "STANDBY"}
                                             </span>
                                             <button
                                                 disabled={!!updating}
                                                 onClick={() => toggleOptIn("referralOptIn")}
-                                                className={`w-12 h-6 rounded-full relative transition-all duration-500 ${stats.referralOptIn ? "bg-emerald-500" : "bg-zinc-800"} ${updating === "referralOptIn" ? "opacity-50" : ""}`}
+                                                className={`w-12 h-6 rounded-full relative transition-all duration-500 ${stats?.referralOptIn ? "bg-emerald-500" : "bg-zinc-800"} ${updating === "referralOptIn" ? "opacity-50" : ""}`}
                                             >
                                                 <div className={`absolute top-1.5 w-3 h-3 rounded-full bg-white transition-all duration-500 ${stats.referralOptIn ? "right-1.5" : "left-1.5"}`} />
                                             </button>

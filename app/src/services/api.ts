@@ -1,53 +1,161 @@
-import { functions } from "@/lib/firebase";
-import { httpsCallable } from "firebase/functions";
+import { auth } from "@/lib/firebase";
 
-// Generic wrapper for callable functions
-export const callFunction = async <TRequest, TResponse>(
-    functionName: string,
-    data: TRequest
+const API_URL = process.env.NEXT_PUBLIC_API_URL || "http://localhost:3001/api";
+
+// Generic wrapper for API calls
+export const callApi = async <TRequest, TResponse>(
+    endpoint: string,
+    method: string = "POST",
+    data?: TRequest
 ): Promise<TResponse> => {
     try {
-        const fn = httpsCallable<TRequest, TResponse>(functions, functionName);
-        const result = await fn(data);
-        return result.data;
+        const token = await auth.currentUser?.getIdToken();
+        
+        console.log(`📡 API Request: ${method} ${API_URL}${endpoint}`, {
+            hasToken: !!token,
+            data: data ? "provided" : "none"
+        });
+
+        const response = await fetch(`${API_URL}${endpoint}`, {
+            method,
+            headers: {
+                "Content-Type": "application/json",
+                ...(token && { Authorization: `Bearer ${token}` }),
+            },
+            body: data ? JSON.stringify(data) : undefined,
+        });
+
+        if (!response.ok) {
+            const error = await response.json();
+            console.error(`❌ API Error [${response.status}]:`, error);
+            throw new Error(error.error || `API request failed with status ${response.status}`);
+        }
+
+        const result = await response.json();
+        console.log(`✅ API Response:`, result);
+        return result;
     } catch (error) {
-        console.error(`Error calling ${functionName}:`, error);
+        console.error(`❌ Error calling ${endpoint}:`, error);
         throw error;
     }
 };
 
-// Typed helpers
-export const registerStudent = (data: any) => callFunction("users-registerStudent", data);
-export const registerAlumni = (data: any) => callFunction("users-registerAlumni", data);
+// Typed helpers - Users
+export const registerStudent = (data: any) => 
+    callApi<any, any>("/users/register-student", "POST", data);
+
+export const registerAlumni = (data: any) => 
+    callApi<any, any>("/users/register-alumni", "POST", data);
+
+export const getProfile = (userId?: string) => 
+    callApi<any, any>("/users/profile", "GET");
+
+export const updateProfile = (data: any) => 
+    callApi<any, any>("/users/profile", "PATCH", data);
 
 // Posts
-export const createPost = (data: any) => callFunction("posts-createPost", data);
-export const getPosts = (data: { limit?: number, startAfter?: string }) => callFunction("posts-getPosts", data);
-export const deletePost = (data: { postId: string }) => callFunction("posts-deletePost", data);
-export const likePost = (data: { postId: string }) => callFunction("posts-likePost", data);
-export const commentPost = (data: { postId: string, content: string }) => callFunction("posts-commentPost", data);
+export const createPost = (data: any) => 
+    callApi<any, any>("/posts", "POST", data);
 
-// Profile
-export const getProfile = (userId?: string) => callFunction<any, any>("users-getProfile", { userId });
-export const updateProfile = (data: any) => callFunction<any, any>("users-updateProfile", data);
+export const getPosts = (data: { limit?: number; startAfter?: string }) => 
+    callApi<any, any>("/posts", "GET");
+
+export const deletePost = (data: { postId: string }) => 
+    callApi<any, any>(`/posts/${data.postId}`, "DELETE");
+
+export const likePost = (data: { postId: string }) => 
+    callApi<any, any>(`/posts/${data.postId}/like`, "POST", data);
+
+export const commentPost = (data: { postId: string; content: string }) => 
+    callApi<any, any>(`/posts/${data.postId}/comment`, "POST", data);
 
 // Guidance
-export const requestGuidance = (data: any) => callFunction("guidance-requestGuidance", data);
-export const replyToGuidance = (data: { requestId: string, reply: string }) => callFunction("guidance-replyToGuidance", data);
+export const requestGuidance = (data: any) => 
+    callApi<any, any>("/guidance/request", "POST", data);
+
+export const replyToGuidance = (data: { requestId: string; reply: string }) => 
+    callApi<any, any>(`/guidance/${data.requestId}/reply`, "POST", data);
 
 // Alumni
-export const getAlumniStats = () => callFunction<any, any>("alumni-getAlumniStats", {});
-export const getFilteredRequests = () => callFunction<any, any[]>("alumni-getFilteredRequests", {});
-export const acceptGuidanceRequest = (requestId: string) => callFunction("alumni-acceptGuidanceRequest", { requestId });
-export const reportStudent = (data: { studentId: string; reason: string; requestId?: string; tenantId: string }) => callFunction("safety-reportStudent", data);
-export const transitionToAlumni = (data: any) => callFunction("users-transitionToAlumni", data);
-export const getActivityHistory = (userId?: string) => callFunction<any, any[]>("users-getActivityHistory", { userId });
+export const getAlumniStats = () => 
+    callApi<any, any>("/alumni/stats", "GET");
+
+export const getAlumniAnalytics = (uid: string) => 
+    callApi<any, any>(`/alumni/${uid}/analytics`, "GET");
+
+export const getAlumniLeaderboard = () => 
+    callApi<any, any>("/alumni/leaderboard", "GET");
+
+// Matching
+export const getRecommendedMentors = (skills?: string) => 
+    callApi<any, any>(`/matching/recommended-mentors${skills ? `?skills=${encodeURIComponent(skills)}` : ''}`, "GET");
+
+export const getAvailableMentors = () => 
+    callApi<any, any>("/matching/available-mentors", "GET");
+
+// Referrals
+export const createReferral = (data: any) => 
+    callApi<any, any>("/referrals", "POST", data);
+
+export const getReferrals = (type: 'open' | 'created' | 'applied' = 'open') => 
+    callApi<any, any[]>(`/referrals?type=${type}`, "GET");
+
+export const applyToReferral = (referralId: string) => 
+    callApi<any, any>(`/referrals/${referralId}/apply`, "POST", {});
+
+export const updateReferralApplicationStatus = (referralId: string, studentId: string, status: string) => 
+    callApi<any, any>(`/referrals/${referralId}/applicant/${studentId}`, "PATCH", { status });
+
+export const closeReferral = (referralId: string) => 
+    callApi<any, any>(`/referrals/${referralId}/close`, "PATCH", {});
+
+export const getFilteredRequests = () => 
+    callApi<any, any[]>("/guidance/filtered", "GET");
+
+export const acceptGuidanceRequest = (requestId: string) => 
+    callApi<any, any>(`/guidance/${requestId}/accept`, "POST");
+
+// Safety
+export const reportStudent = (data: { studentId: string; reason: string; requestId?: string; tenantId: string }) => 
+    callApi<any, any>("/safety/report", "POST", data);
+
+// Transitions
+export const transitionToAlumni = (data: any) => 
+    callApi<any, any>("/users/transition-alumni", "POST", data);
+
+export const getActivityHistory = (userId?: string) => 
+    callApi<any, any[]>("/users/activity", "GET");
 
 // Admin Helpers
-export const getAdminDashboardStats = () => callFunction<any, any>("adminActions-getAdminDashboardStats", {});
-export const approveAlumni = (uid: string, tenantId: string) => callFunction("adminActions-approveAlumni", { uid, tenantId });
-export const createAnnouncement = (data: any) => callFunction("adminActions-createAnnouncement", data);
-export const resolveSafetyReport = (data: any) => callFunction("adminActions-resolveSafetyReport", data);
-export const suspendUser = (uid: string, reason: string) => callFunction("adminActions-suspendUser", { uid, reason });
-export const promoteToAdmin = (uid: string, tenantId: string) => callFunction("adminActions-promoteToAdmin", { uid, tenantId });
-export const searchUsers = (query: string, tenantId: string = "default") => callFunction<{ query: string, tenantId: string }, { users: any[] }>("adminActions-searchUsers", { query, tenantId });
+export const getAdminDashboardStats = () => 
+    callApi<any, any>("/admin/dashboard", "GET");
+
+export const getPendingAlumni = () => 
+    callApi<any, any[]>("/admin/pending-alumni", "GET");
+
+export const approveAlumni = (uid: string, tenantId?: string) => 
+    callApi<any, any>("/admin/approve-alumni", "POST", { uid });
+
+export const rejectAlumni = (uid: string, reason: string) => 
+    callApi<any, any>("/admin/reject-alumni", "POST", { uid, reason });
+
+export const createAnnouncement = (data: any) => 
+    callApi<any, any>("/admin/announcement", "POST", data);
+
+export const suspendUser = (uid: string, reason: string) => 
+    callApi<any, any>("/admin/suspend-user", "POST", { uid, reason });
+
+export const blockUser = (uid: string, reason: string) => 
+    callApi<any, any>("/admin/block-user", "POST", { uid, reason });
+
+export const searchUsers = (query: string) => 
+    callApi<any, any[]>(`/admin/search-users?q=${encodeURIComponent(query)}`, "GET");
+
+export const getAuditLogs = () => 
+    callApi<any, any[]>("/admin/audit-logs", "GET");
+
+export const getSafetyReports = () => 
+    callApi<any, any[]>("/safety/reports", "GET");
+
+export const resolveSafetyReport = (data: { reportId: string; resolution: string; action: string }) => 
+    callApi<any, any>(`/safety/${data.reportId}/resolve`, "POST", data);

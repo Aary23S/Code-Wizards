@@ -17,6 +17,7 @@ export default function Home() {
   const [view, setView] = useState<"landing" | "dashboard">("landing");
 
   const [isSigningIn, setIsSigningIn] = useState(false);
+  const [signInError, setSignInError] = useState<string | null>(null);
 
   // Automatically switch to dashboard if user has a role and we're not in a registration flow
   if (user && role && view === "landing" && !showReg) {
@@ -30,10 +31,19 @@ export default function Home() {
   const handleJoin = async (type: "student" | "alumni") => {
     if (!user) {
       setIsSigningIn(true);
-      const success = await signInWithGoogle();
-      setIsSigningIn(false);
-      if (success) {
-        setShowReg(type);
+      setSignInError(null);
+      try {
+        const success = await signInWithGoogle();
+        if (success) {
+          setShowReg(type);
+        } else {
+          setSignInError("Sign-in was cancelled. Please try again.");
+        }
+      } catch (error: any) {
+        console.error("Sign-in error:", error);
+        setSignInError(error.message || "Failed to sign in. Please try again.");
+      } finally {
+        setIsSigningIn(false);
       }
     } else {
       setShowReg(type);
@@ -138,6 +148,17 @@ export default function Home() {
               <div className="absolute top-0 left-1/2 -z-10 h-[600px] w-full -translate-x-1/2 bg-[radial-gradient(circle_at_center,_var(--tw-gradient-stops))] from-white/10 via-black to-black blur-3xl opacity-50" />
 
               <div className="text-center max-w-4xl mx-auto w-full flex flex-col items-center">
+                {signInError && (
+                  <div className="mb-8 w-full max-w-md mx-auto animate-in slide-in-from-top-4 duration-300">
+                    <div className="bg-red-500/10 border border-red-500/30 rounded-2xl p-4 flex items-center gap-3">
+                      <span className="text-xl flex-shrink-0">⚠️</span>
+                      <div className="text-left">
+                        <p className="text-sm font-semibold text-red-400">{signInError}</p>
+                        <p className="text-xs text-red-400/70 mt-1">Please check your browser console for more details.</p>
+                      </div>
+                    </div>
+                  </div>
+                )}
                 {showReg === "student" ? (
                   <StudentRegistration
                     onSuccess={() => { setShowReg(null); window.location.reload(); }}
